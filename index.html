@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AQI Game - 网解game与tool平台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: linear-gradient(135deg, #e3f2fd, #bbdefb, #90caf9, #64b5f6);
+            --bg-secondary: rgba(255, 255, 255, 0.85);
+            --bg-card: rgba(255, 255, 255, 0.85);
+            --text-primary: #1a237e;
+            --text-secondary: #1565c0;
+            --text-title: #0d47a1;
+            --accent-color: #1976d2;
+            --border-color: rgba(13, 71, 161, 0.2);
+            --shadow-color: rgba(13, 71, 161, 0.1);
+            --hover-shadow-color: rgba(13, 71, 161, 0.2);
+            --button-bg: #1976d2;
+            --button-hover-bg: #0d47a1;
+            --mode-toggle-bg: #0d47a1;
+            --mode-toggle-icon: "🌙";
+        }
+
+        body.dark-mode {
+            --bg-primary: linear-gradient(135deg, #0a1929, #0d1b2a, #1b263b, #415a77);
+            --bg-secondary: rgba(13, 27, 42, 0.85);
+            --bg-card: rgba(20, 30, 48, 0.85);
+            --text-primary: #e3f2fd;
+            --text-secondary: #90caf9;
+            --text-title: #bbdefb;
+            --accent-color: #64b5f6;
+            --border-color: rgba(100, 181, 246, 0.2);
+            --shadow-color: rgba(13, 27, 42, 0.3);
+            --hover-shadow-color: rgba(100, 181, 246, 0.2);
+            --button-bg: #1565c0;
+            --button-hover-bg: #1976d2;
+            --mode-toggle-bg: #bbdefb;
+            --mode-toggle-icon: "☀️";
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+            transition: all 0.5s ease;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 25px;
+        }
+
+        .logo-link {
+            display: inline-block;
+            transition: all 0.5s ease;
+        }
+
+        .logo-link img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+
+        .logo-link:hover img {
+            transform: scale(1.15) rotate(15deg);
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
+        }
+
+        .mode-toggle-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+
+        .mode-toggle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--mode-toggle-bg);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .mode-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .mode-toggle::after {
+            content: var(--mode-toggle-icon);
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 0;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            color: var(--text-title);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            line-height: 1;
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 15px auto 0;
+        }
+
+        .nav-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .nav-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            box-shadow: 0 4px 15px var(--shadow-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-card.with-bg {
+            position: relative;
+            isolation: isolate;
+        }
+
+        .nav-card.with-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: var(--card-bg-image);
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            filter: blur(8px) brightness(0.7);
+            z-index: -1;
+            opacity: 0.7;
+            transition: opacity 0.5s ease;
+        }
+
+        .nav-card.with-bg:hover::before {
+            opacity: 0.85;
+            filter: blur(5px) brightness(0.8);
+        }
+
+        .nav-card.with-bg .nav-icon,
+        .nav-card.with-bg .nav-title,
+        .nav-card.with-bg .nav-description,
+        .nav-card.with-bg .nav-link {
+            position: relative;
+            z-index: 2;
+        }
+
+        .nav-card.with-bg .nav-title,
+        .nav-card.with-bg .nav-description {
+            color: white;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+        }
+
+        .nav-card.with-bg .nav-icon {
+            color: white;
+        }
+
+        .nav-card:hover {
+            transform: translateY(-10px);
+            background: var(--bg-secondary);
+            box-shadow: 0 15px 30px var(--hover-shadow-color);
+        }
+
+        .nav-card.with-bg:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            display: block;
+            color: var(--accent-color);
+        }
+
+        .nav-title {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: var(--text-title);
+        }
+
+        .nav-description {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .nav-link {
+            display: inline-block;
+            background: var(--button-bg);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: 1px solid var(--accent-color);
+            margin: 5px;
+        }
+
+        .nav-link:hover {
+            background: var(--button-hover-bg);
+            transform: scale(1.05);
+        }
+
+        .features {
+            background: var(--bg-secondary);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 40px 0;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 15px var(--shadow-color);
+        }
+
+        .features h2 {
+            text-align: center;
+            font-size: 2.2rem;
+            margin-bottom: 30px;
+            color: var(--text-title);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .feature-item {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            display: block;
+            color: var(--accent-color);
+        }
+
+        .feature-title {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: var(--text-title);
+        }
+
+        .feature-desc {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            margin-top: 40px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .welcome-section {
+            background: var(--bg-secondary);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 15px var(--shadow-color);
+        }
+
+        .welcome-section h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: var(--text-title);
+        }
+
+        .welcome-section p {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            max-width: 800px;
+            margin: 0 auto;
+            color: var(--text-secondary);
+        }
+
+        .footer-container {
+            background: var(--bg-secondary);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 40px 30px;
+            margin-top: 40px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 15px var(--shadow-color);
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .footer-section {
+            padding: 15px;
+        }
+
+        .footer-title {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            color: var(--text-title);
+            font-weight: bold;
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 10px;
+            display: inline-block;
+        }
+
+        .contact-info {
+            list-style: none;
+        }
+
+        .contact-info li {
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+        }
+
+        .contact-icon {
+            font-size: 1.2rem;
+            margin-right: 10px;
+            color: var(--accent-color);
+            width: 25px;
+            text-align: center;
+        }
+
+        .contact-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .contact-link:hover {
+            color: var(--text-title);
+            text-decoration: underline;
+        }
+
+        .qrcode-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .qrcode-row {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .qrcode-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .qrcode {
+            width: 150px;
+            height: 150px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 10px var(--shadow-color);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+        }
+
+        .qrcode img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .qrcode-label {
+            font-size: 0.9rem;
+            color: var(--text-title);
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .qrcode-text {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .footer-links {
+            margin-top: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .footer-btn {
+            display: inline-block;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+            border: 1px solid transparent;
+        }
+
+        .footer-btn-xhs {
+            background-color: #ff5e6c;
+            color: white;
+            border-color: #ff3b4a;
+        }
+
+        .footer-btn-xhs:hover {
+            background-color: #ff3b4a;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(255,94,108,0.25);
+        }
+
+        .footer-btn-taptap {
+            background-color: #2ecc71;
+            color: white;
+            border-color: #27ae60;
+        }
+
+        .footer-btn-taptap:hover {
+            background-color: #27ae60;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(46,204,113,0.25);
+        }
+
+        .footer-btn-group {
+            background-color: #6c5ce7;
+            color: white;
+            border-color: #5a4bd1;
+        }
+
+        .footer-btn-group:hover {
+            background-color: #5a4bd1;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(108,92,231,0.25);
+        }
+
+        .footer-btn-support {
+            background-color: #6c5ce7;
+            color: white;
+            border-color: #5a4bd1;
+        }
+
+        .footer-btn-support:hover {
+            background-color: #5a4bd1;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(108,92,231,0.25);
+        }
+
+        .footer-btn-fans {
+            background-color: #154360;
+            color: white;
+            border-color: #0e2f47;
+        }
+
+        .footer-btn-fans:hover {
+            background-color: #0e2f47;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(21,67,96,0.25);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .header-content {
+                gap: 15px;
+            }
+            
+            .logo-link img {
+                width: 70px;
+                height: 70px;
+            }
+
+            .subtitle {
+                font-size: 1.2rem;
+            }
+
+            .nav-card {
+                padding: 20px;
+            }
+
+            .nav-title {
+                font-size: 1.5rem;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+
+            .qrcode-row {
+                gap: 20px;
+            }
+
+            .qrcode {
+                width: 130px;
+                height: 130px;
+            }
+
+            .mode-toggle {
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header-content {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .logo-link img {
+                width: 70px;
+                height: 70px;
+            }
+        }
+
+        .egg-tip {
+            display: none;
+        }
+        body.dark-mode .normal-tip {
+            display: none;
+        }
+        body.dark-mode .egg-tip {
+            display: inline-block;
+            color: transparent;
+            user-select: text;
+        }
+        body.dark-mode .egg-tip::selection {
+            background-color: var(--accent-color);
+            color: #ffffff;
+        }
+
+        #scrollTopBtn {
+            display: none;
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 100;
+            width: 50px;
+            height: 50px;
+            background-color: var(--button-bg);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #scrollTopBtn:hover {
+            background-color: var(--button-hover-bg);
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        #scrollTopBtn svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        @media (max-width: 768px) {
+            #scrollTopBtn {
+                bottom: 20px;
+                right: 20px;
+                width: 45px;
+                height: 45px;
+            }
+        }
+
+        .footer-btn {
+            cursor: pointer;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            position: relative;
+            max-width: 90vw;
+            max-height: 90vh;
+            background: white;
+            border-radius: 12px;
+            padding: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-box img {
+            display: block;
+            max-width: 100%;
+            max-height: 80vh;
+            border-radius: 8px;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: -14px;
+            right: -14px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: #6c5ce7;
+            color: white;
+            font-size: 1.4rem;
+            line-height: 1;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 迁移中链接的轻提示（Toast） */
+        #migrateToast {
+            position: fixed;
+            left: 50%;
+            bottom: 40px;
+            transform: translate(-50%, 20px);
+            max-width: 88vw;
+            padding: 14px 22px;
+            border-radius: 30px;
+            background: var(--button-bg);
+            color: #ffffff;
+            font-size: 0.98rem;
+            line-height: 1.5;
+            text-align: center;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            z-index: 300;
+        }
+
+        #migrateToast.show {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
+        #migrateToast .toast-em {
+            font-weight: bold;
+        }
+    </style>
+    <link rel="icon" type="image/png" href="https://aqigame.linnea-seven-cq.online/gallery/AQIgame.png">
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-GMCT2H7LVB"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-GMCT2H7LVB');
+    </script>
+
+    <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?e09174db384708313cceee3f542d5fae";
+      var s = document.getElementsByTagName("script")[0]; 
+      s.parentNode.insertBefore(hm, s);
+    })();
+    </script>
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-V0TVNPQNEG"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-V0TVNPQNEG');
+    </script>
+</head>
+<body>
+    <button id="scrollTopBtn" aria-label="返回顶部">
+        <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+    </button>
+
+    <div class="mode-toggle-container">
+        <button class="mode-toggle" id="modeToggle" aria-label="切换暗夜模式"></button>
+    </div>
+
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <a href="#" class="logo-link" id="logoLink">
+                    <img src="https://aqigame.linnea-seven-cq.online/gallery/AQIgame.png" alt="AQI Game Logo">
+                </a>
+                
+                <div>
+                    <h1>AQI Game</h1>
+                    <p class="subtitle">网页游戏与实用工具平台</p>
+                </div>
+            </div>
+        </header>
+
+        <div class="welcome-section">
+            <h2>欢迎来到AQI Game平台</h2>
+             <p>这里是一个集网页解谜游戏与实用工具于一体的数字空间。无论你是喜欢网页解谜游戏，还是喜欢摸鱼放松的休闲小游戏，或是需要便捷的网页工具，这里都能满足你的需求~关注不亏，常看常新~</p>
+        </div>
+
+        <div class="nav-container">
+            <div class="nav-card with-bg" style="--card-bg-image: url('https://aqigame.linnea-seven-cq.online/gallery/bjb.jpg')">
+                <span class="nav-icon">🗝️</span>
+                <h3 class="nav-title">网页解谜游戏-神秘的失物招领事件！</h3>
+                <p class="nav-description">进入阿七创造的静乔宇宙，登录静乔公寓论坛，挑战你的耐心和观察力！本作偏难哦，建议先去游玩较简单的BOSS消失事件哦</p>
+                <a href="https://aqigame.linnea-seven-cq.online/Syzygy/begin.html" data-migrating data-game-title="网页解谜游戏-神秘的失物招领事件！" class="nav-link">开始解谜</a>
+            </div>
+
+            <div class="nav-card with-bg" style="--card-bg-image: url('https://aqigame.linnea-seven-cq.online/gallery/gy2.png')">
+                <span class="nav-icon">🗝️</span>
+                <h3 class="nav-title">网页解谜游戏-静乔公寓番外篇~</h3>
+                <p class="nav-description">进入阿七创造的静乔宇宙，登录静乔公寓论坛，挑战你的耐心和观察力！</p>
+                <a href="https://aqigame.linnea-seven-cq.online/jqgy30day/search.html" data-migrating data-game-title="网页解谜游戏-静乔公寓番外篇~" class="nav-link">开始解谜</a>
+            </div>
+        </div>
+
+        <div class="nav-container">
+            <div class="nav-card with-bg" style="--card-bg-image: url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80')">
+                <span class="nav-icon">🗝️</span>
+                <h3 class="nav-title">网页解谜游戏-BOSS消失事件！</h3>
+                <p class="nav-description">和boss坐同一个电梯他突然倒地！求援后boss却消失了？！你被列为重大嫌疑人！快来洗清嫌疑</p>
+                <a href="https://aqigame.linnea-seven-cq.online/BOSSvanish/begin.html" data-migrating data-game-title="网页解谜游戏-BOSS消失事件！" class="nav-link">开始解谜</a>
+            </div>
+            <div class="nav-card with-bg" style="--card-bg-image: url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80')">
+                <span class="nav-icon">🗝️</span>
+                <h3 class="nav-title">网页解谜游戏-BOSS消失事件手机版~</h3>
+                <p class="nav-description">手机版游玩BOSS消失事件点这里哦</p>
+                <a href="https://aqigame.linnea-seven-cq.online/boss-phone/begin.html" data-migrating data-game-title="网页解谜游戏-BOSS消失事件手机版~" class="nav-link">开始解谜</a>
+            </div>
+        </div>
+        
+        <div class="nav-container">
+            <div class="nav-card with-bg" style="--card-bg-image: url('https://aqigame.linnea-seven-cq.online/xjthj/bgs0.jpg')">
+                <span class="nav-icon">🗝️</span>
+                <h3 class="nav-title">网页解谜游戏-墟境调和局！</h3>
+                <p class="nav-description">游玩作者新创作的网页解谜游戏~感受墟境调和局的魅力~！</p>
+                <a href="https://aqigame.linnea-seven-cq.online/xjthj/begin.html" data-migrating data-game-title="网页解谜游戏-墟境调和局！" class="nav-link">开始解谜</a>
+            </div>
+
+             <div class="nav-card with-bg" style="--card-bg-image: url('https://aqigame.linnea-seven-cq.online/jhjm/jhjm.png')">
+                <span class="nav-icon">🗝️</span>
+                <h3 class="nav-title">网页解谜游戏-锦华旧梦上 </h3>
+                <p class="nav-description">住在同一个小区里的花大姐年轻时似乎经历了不少事......</p>
+                <a href="https://aqigame.linnea-seven-cq.online/jhjm/begin.html" data-migrating data-game-title="网页解谜游戏-锦华旧梦上" class="nav-link">开始解谜</a>
+            </div>
+        </div>
+
+        <div class="nav-container">
+            <div class="nav-card with-bg" style="--card-bg-image: url('https://aqigame.linnea-seven-cq.online/gallery/%E4%BB%99%E8%AF%A1%E5%AE%A3%E4%BC%A0%E5%9B%BE.png')">
+                <span class="nav-icon">🗝️</span>
+                <h3 class="nav-title">网页解谜游戏-Demo-仙诡</h3>
+                <p class="nav-description">快来体验仙诡的最新Demo版本~！</p>
+                <a href="https://aqigame.linnea-seven-cq.online/%E4%BB%99%E8%AF%A1demo/dm4" data-migrating data-game-title="网页解谜游戏-Demo-仙诡" class="nav-link">开始体验Demo</a>
+            </div>
+        </div>
+
+        <div class="nav-container">
+            <div class="nav-card with-bg" style="--card-bg-image: url('https://aqigame.linnea-seven-cq.online/image/logo.png')">
+                <span class="nav-icon">🐰</span>
+                <h3 class="nav-title">网页解谜游戏-小兔子森林冒险记</h3>
+                <p class="nav-description">用手机app打开哦~</p>
+                <a href="https://www.xiaohongshu.com/discovery/item/6a8ad4cc000000003300cc7a?source=webshare&xhsshare=pc_web&xsec_token=ABt-oGv8tCOjgvgEI9WFjWBH2BwZ0cWLBiLc1pF8awVKE=&xsec_source=pc_share" class="nav-link">打开小红书链接</a>
+            </div>
+
+            <div class="nav-card with-bg" style="--card-bg-image: url('https://aqigame.linnea-seven-cq.online/image/2.jpg')">
+                <span class="nav-icon">🔍</span>
+                <h3 class="nav-title">国风探案游戏-长安十一谜案</h3>
+                <p class="nav-description">马上上线，敬请期待~</p>
+                <a href="#" data-migrating data-toast="「国风探案游戏-长安十一谜案」还在制作中，敬请期待～" class="nav-link" style="background:#888; border-color:#666;">敬请期待</a>
+            </div>
+        </div>
+
+        <div class="nav-container">
+            <div class="nav-card">
+                <span class="nav-icon">❤️</span>
+                <h3 class="nav-title">情侣百件小事打卡清单</h3>
+                <p class="nav-description">完成后可生成纪念图保存哦！没有奖品ww！纯打卡！</p>
+                <a href="https://aqigame.linnea-seven-cq.online/web/love.html" data-migrating data-game-title="情侣百件小事打卡清单" class="nav-link">开始打卡</a>
+            </div>
+
+            <div class="nav-card">
+                <span class="nav-icon">📖</span>
+                <h3 class="nav-title">小说阅读器</h3>
+                <p class="nav-description">方便快捷隐蔽的txt小说阅读工具，<br>支持上传背景、单行阅读、双击消失的个性化设置！</p>
+                <a href="https://aqigame.linnea-seven-cq.online/reader/1.0" data-migrating data-game-title="小说阅读器" class="nav-link">开始阅读</a>
+                <a href="https://aqigame.linnea-seven-cq.online/reader/2.0" data-migrating data-game-title="小说阅读器" class="nav-link">使用2.0版本</a>
+            </div>
+        </div>
+
+        <div class="features">
+            <h2>🌟 平台特色</h2>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <span class="feature-icon">🎮</span>
+                    <h4 class="feature-title">互动解谜</h4>
+                    <p class="feature-desc">精心设计的网页解谜游戏，每一页都充满惊喜与挑战</p>
+                </div>
+
+                <div class="feature-item">
+                    <span class="feature-icon">⚡</span>
+                    <h4 class="feature-title">即时工具</h4>
+                    <p class="feature-desc">无需下载，即开即用的网页工具，摸鱼的绝佳选择！0v0</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3 class="footer-title">关注作者</h3>
+                    <div class="qrcode-container">
+                        <div class="qrcode-row">
+                            <div class="qrcode-item">
+                                <div class="qrcode">
+                                    <img src="https://aqigame.linnea-seven-cq.online/gallery/vx.jpg" alt="微信公众号二维码">
+                                </div>
+                                <div class="qrcode-label">微信公众号</div>
+                            </div>
+                            <div class="qrcode-item">
+                                <div class="qrcode">
+                                    <img src="https://aqigame.linnea-seven-cq.online/gallery/xhs.jpg" alt="小红薯二维码">
+                                </div>
+                                <div class="qrcode-label">小红薯</div>
+                            </div>
+                        </div>
+                
+                        <div class="footer-links">
+                            <a href="https://www.xiaohongshu.com/user/profile/62a9c2e9000000001b0285d6?xsec_token=ABwztV_zmfjJVEQ2L9a0_Hmj9rj02UomqKY2VLNFMlC7Y=&xsec_source=pc_search" 
+                               target="_blank" 
+                               rel="noopener noreferrer" 
+                               class="footer-btn footer-btn-xhs">
+                                @AQI棖柒本柒
+                            </a>
+                            
+                            <a href="https://www.taptap.cn/user/39581437" 
+                               target="_blank" 
+                               rel="noopener noreferrer" 
+                               class="footer-btn footer-btn-taptap">
+                                AQI棖柒
+                            </a>
+                            
+                            <button type="button" class="footer-btn footer-btn-fans" id="weixinBtn">
+                                AQIgame粉丝群
+                            </button>
+                        </div>
+
+                        <p class="qrcode-text">
+                            <span class="normal-tip">扫描二维码<br>或<br>点击上方按钮<br>获取最新游戏资讯~</span>
+                            <span class="egg-tip">logo * 7</span>
+                        </p>
+
+                        <div class="footer-links" style="margin-top: 12px;">
+                            <a href="https://www.ifdian.net/a/AQIgame" 
+                               target="_blank" 
+                               rel="noopener noreferrer" 
+                               class="footer-btn footer-btn-support">
+                                ❤️ 支持作者
+                            </a>
+                            <button type="button" class="footer-btn footer-btn-fans" id="zanshangBtn">
+                                ❤️ 赞赏作者
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+            <div class="footer-bottom">
+                <p>© 2025 AQI Game Platform - 网页游戏与工具平台 | 探索数字世界的无限可能</p>
+                <p>Made with ❤️ by 阿柒</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="weixinModal">
+        <div class="modal-box">
+            <button type="button" class="modal-close" id="weixinModalClose" aria-label="关闭">×</button>
+            <img src="https://aqigame.linnea-seven-cq.online/image/1.jpg" alt="AQIgame粉丝群">
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="zanshangModal">
+        <div class="modal-box">
+            <button type="button" class="modal-close" id="zanshangModalClose" aria-label="关闭">×</button>
+            <img src="https://aqigame.linnea-seven-cq.online/image/%E8%B5%9E%E8%B5%8F%E7%A0%81.jpg" alt="赞赏作者">
+        </div>
+    </div>
+
+    <div id="migrateToast" role="status" aria-live="polite"></div>
+
+    <script>
+        /* ===== 迁移提示开关 =====
+           MIGRATING = true  ：点击指向游戏站的卡片，弹出"迁移中"轻提示，不跳转
+           MIGRATING = false ：恢复正常跳转（游戏站上线后改这里即可）
+        ================================================= */
+        const MIGRATING = true;
+        const GAME_SITE = "https://aqigame.linnea-seven-cq.online";
+
+        const modeToggle = document.getElementById('modeToggle');
+        const body = document.body;
+        
+        const weixinBtn = document.getElementById('weixinBtn');
+        const weixinModal = document.getElementById('weixinModal');
+        const weixinModalClose = document.getElementById('weixinModalClose');
+        weixinBtn.addEventListener('click', () => weixinModal.classList.add('active'));
+        weixinModalClose.addEventListener('click', () => weixinModal.classList.remove('active'));
+        weixinModal.addEventListener('click', (e) => {
+            if (e.target === weixinModal) weixinModal.classList.remove('active');
+        });
+
+        const zanshangBtn = document.getElementById('zanshangBtn');
+        const zanshangModal = document.getElementById('zanshangModal');
+        const zanshangModalClose = document.getElementById('zanshangModalClose');
+        zanshangBtn.addEventListener('click', () => zanshangModal.classList.add('active'));
+        zanshangModalClose.addEventListener('click', () => zanshangModal.classList.remove('active'));
+        zanshangModal.addEventListener('click', (e) => {
+            if (e.target === zanshangModal) zanshangModal.classList.remove('active');
+        });
+        
+        const savedMode = localStorage.getItem('themeMode');
+        if (savedMode === 'dark') {
+            body.classList.add('dark-mode');
+        }
+        
+        modeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+            if (body.classList.contains('dark-mode')) {
+                localStorage.setItem('themeMode', 'dark');
+            } else {
+                localStorage.setItem('themeMode', 'light');
+            }
+        });
+        
+        const logoLink = document.getElementById('logoLink');
+        let logoClickCount = 0;
+        let logoClickTimer = null;
+
+        logoLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            logoClickCount++;
+            if (logoClickCount === 7) {
+                window.location.href = GAME_SITE + '/web/yanzheng.html';
+                logoClickCount = 0;
+            }
+            clearTimeout(logoClickTimer);
+            logoClickTimer = setTimeout(() => {
+                logoClickCount = 0;
+            }, 3000);
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const cardsWithBg = document.querySelectorAll('.nav-card.with-bg');
+            cardsWithBg.forEach(card => {
+                const style = getComputedStyle(card);
+                const bgImage = style.getPropertyValue('--card-bg-image').trim();
+                if (bgImage && bgImage !== 'none') {
+                    const cleanUrl = bgImage.replace(/^url\(["']?|["']?\)$/g, '');
+                    card.style.setProperty('--card-bg-image-value', `url("${cleanUrl}")`);
+                    const styleSheet = document.createElement('style');
+                    styleSheet.textContent = `
+                        .nav-card.with-bg[style*="${cleanUrl}"]::before {
+                            background-image: var(--card-bg-image-value);
+                        }
+                    `;
+                    document.head.appendChild(styleSheet);
+                }
+            });
+        });
+
+        /* ===== 迁移中链接的轻提示 ===== */
+        const migrateToast = document.getElementById('migrateToast');
+        let toastTimer = null;
+
+        function showMigrateToast(message) {
+            migrateToast.innerHTML = message;
+            migrateToast.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                migrateToast.classList.remove('show');
+            }, 2800);
+        }
+
+        document.querySelectorAll('a[data-migrating]').forEach(link => {
+            link.addEventListener('click', function (e) {
+                if (!MIGRATING) return;
+                e.preventDefault();
+                const title = this.getAttribute('data-game-title');
+                const custom = this.getAttribute('data-toast');
+                if (custom) {
+                    showMigrateToast(custom);
+                } else {
+                    showMigrateToast('「<span class="toast-em">' + (title || '该内容') + '</span>」正在迁移至新站，即将上线～');
+                }
+            });
+        });
+
+        const scrollTopBtn = document.getElementById('scrollTopBtn');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                scrollTopBtn.style.display = 'flex';
+            } else {
+                scrollTopBtn.style.display = 'none';
+            }
+        });
+        
+        scrollTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    </script>
+</body>
+</html>
