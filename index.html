@@ -736,7 +736,7 @@
             font-weight: bold;
         }
     </style>
-    <link rel="icon" type="image/png" href="https://aqigame.linnea-seven-cq.online/gallery/AQIgame.png">
+    <link rel="icon" type="image/jpeg" href="./image/aqigame.jpg">
 
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-GMCT2H7LVB"></script>
     <script>
@@ -777,7 +777,7 @@
         <header>
             <div class="header-content">
                 <a href="#" class="logo-link" id="logoLink">
-                    <img src="https://aqigame.linnea-seven-cq.online/gallery/AQIgame.png" alt="AQI Game Logo">
+                    <img src="./aqigame.jpg" alt="AQI Game Logo">
                 </a>
                 
                 <div>
@@ -849,14 +849,14 @@
         </div>
 
         <div class="nav-container">
-            <div class="nav-card with-bg" style="--card-bg-image: url('https://aqigame.linnea-seven-cq.online/image/logo.png')">
+            <div class="nav-card with-bg" style="--card-bg-image: url('./image/logo.png')">
                 <span class="nav-icon">🐰</span>
                 <h3 class="nav-title">网页解谜游戏-小兔子森林冒险记</h3>
                 <p class="nav-description">用手机app打开哦~</p>
                 <a href="https://www.xiaohongshu.com/discovery/item/6a8ad4cc000000003300cc7a?source=webshare&xhsshare=pc_web&xsec_token=ABt-oGv8tCOjgvgEI9WFjWBH2BwZ0cWLBiLc1pF8awVKE=&xsec_source=pc_share" class="nav-link">打开小红书链接</a>
             </div>
 
-            <div class="nav-card with-bg" style="--card-bg-image: url('https://aqigame.linnea-seven-cq.online/image/2.jpg')">
+            <div class="nav-card with-bg" style="--card-bg-image: url('./image/2.jpg')">
                 <span class="nav-icon">🔍</span>
                 <h3 class="nav-title">国风探案游戏-长安十一谜案</h3>
                 <p class="nav-description">马上上线，敬请期待~</p>
@@ -969,14 +969,14 @@
     <div class="modal-overlay" id="weixinModal">
         <div class="modal-box">
             <button type="button" class="modal-close" id="weixinModalClose" aria-label="关闭">×</button>
-            <img src="https://aqigame.linnea-seven-cq.online/image/1.jpg" alt="AQIgame粉丝群">
+            <img src="./image/1.jpg" alt="AQIgame粉丝群">
         </div>
     </div>
 
     <div class="modal-overlay" id="zanshangModal">
         <div class="modal-box">
             <button type="button" class="modal-close" id="zanshangModalClose" aria-label="关闭">×</button>
-            <img src="https://aqigame.linnea-seven-cq.online/image/%E8%B5%9E%E8%B5%8F%E7%A0%81.jpg" alt="赞赏作者">
+            <img src="./image/赞赏码.jpg" alt="赞赏作者">
         </div>
     </div>
 
@@ -987,7 +987,7 @@
            MIGRATING = true  ：点击指向游戏站的卡片，弹出"迁移中"轻提示，不跳转
            MIGRATING = false ：恢复正常跳转（游戏站上线后改这里即可）
         ================================================= */
-        const MIGRATING = true;
+        const MIGRATING = false;
         const GAME_SITE = "https://aqigame.linnea-seven-cq.online";
 
         const modeToggle = document.getElementById('modeToggle');
@@ -1082,13 +1082,7 @@
             link.addEventListener('click', function (e) {
                 if (!MIGRATING) return;
                 e.preventDefault();
-                const title = this.getAttribute('data-game-title');
-                const custom = this.getAttribute('data-toast');
-                if (custom) {
-                    showMigrateToast(custom);
-                } else {
-                    showMigrateToast('「<span class="toast-em">' + (title || '该内容') + '</span>」正在迁移至新站，即将上线～');
-                }
+                showMigrateToast('网站正在迁移～');
             });
         });
 
